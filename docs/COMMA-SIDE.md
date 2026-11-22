@@ -7,10 +7,9 @@ T-UI reads three read-only HTTP endpoints from the comma (contract: docs/HUD-CON
 ## Status (2026-11)
 - **Stock openpilot**: does not serve these endpoints. Its data lives in cereal messages on the device only.
 - **Stock StarPilot**: has the Galaxy web server (port 8082) but not the HUD endpoints.
-- **HUD API patch for StarPilot Galaxy**: exists (about 1,800 lines + tests: snapshot sampler, scene stream, route
-  endpoint), developed for one car. It must be extracted into a clean, car-independent patch series before release:
-  remove car-specific blocks (steering-board, datalogger, fuel and door CAN fields), keep the generic fields,
-  keep StarPilot's MIT notices, and offer it upstream to StarPilot as a pull request.
+- **HUD API patch for StarPilot Galaxy** (MIT): https://github.com/mlocoteta/t-ui-comma-patch: `GET /api/hud` and
+  `GET /api/hud/scene`, car-independent, read-only, host-tested on StarPilot `stable`. Not yet included: `gps`, `nav`
+  and `GET /api/hud/route` (T-UI's map position and route); planned next, then an upstream pull request to StarPilot.
 - **Standalone daemon (`hudd`, planned)**: the same JSON from a small process that subscribes to cereal
   (carState, selfdriveState/controlsState, modelV2, radarState, liveTracks, livePose, navInstruction where present), so
   stock openpilot, sunnypilot and FrogPilot users can run T-UI without StarPilot. Fields a fork lacks stay null; T-UI

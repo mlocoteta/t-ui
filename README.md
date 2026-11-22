@@ -40,10 +40,11 @@ responsible at all times. This app is a secondary display; watch the road and th
 ## What you need
 - An Android device for the display: Android 6+ for the MapLibre build (live / offline maps), Android 5+ for the lean
   build (built-in map). Aftermarket Android head units and tablets are the main target.
-- A comma device running openpilot with the **HUD API** (`GET /api/hud`, `GET /api/hud/scene`, `GET /api/hud/route`):
+- A comma device running openpilot with the **HUD API** (`GET /api/hud`, `GET /api/hud/scene`):
   today this is a patch on top of StarPilot's Galaxy web server: <https://github.com/mlocoteta/t-ui-comma-patch>
   (docs/COMMA-SIDE.md). Stock openpilot and stock
-  StarPilot do not serve these endpoints yet.
+  StarPilot do not serve these endpoints yet. The current patch does not include the comma's GPS position, navigation
+  or route yet, so the map pane shows "Waiting for GPS from the comma" (the drive view works fully).
 - The display joined to the comma's Wi-Fi hotspot (or the same network).
 
 ## Install (APK from GitHub Releases)
