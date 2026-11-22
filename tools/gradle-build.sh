@@ -18,15 +18,16 @@ rm -rf "$TUI_GEN"; mkdir -p "$TUI_GEN/assets" "$TUI_GEN/res" "$W/host"
 # manifest without the package attribute (Gradle uses namespace), INTERNET + network state for tiles
 sed -e '/package="@APP_ID@"/d' -e "s/@APP_NAME@/$APP_NAME/g" -e 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android"|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|' \
   "$here/app/AndroidManifest.xml" | sed -e 's|^    *>$||' > "$TUI_GEN/AndroidManifest.xml"
-# MapLibre's library manifest asks for location + Wi-Fi state; TUI takes the position from the comma, so strip them
+# MapLibre's library manifest asks for location + Wi-Fi state. Keep FINE location for the opt-in "use this device's GPS"
+# setting (asked at run time only when the user turns it on); strip COARSE location and Wi-Fi state
 python3 -I - "$TUI_GEN/AndroidManifest.xml" <<'PY2'
 import sys
 p = sys.argv[1]; s = open(p).read()
 s = s.replace('<manifest xmlns:android="http://schemas.android.com/apk/res/android">',
               '<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">', 1)
 rm = "".join('    <uses-permission android:name="android.permission.%s" tools:node="remove" />\n' % n
-             for n in ("ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "ACCESS_WIFI_STATE"))
-s = s.replace("    <application", rm + "\n    <application", 1)
+             for n in ("ACCESS_COARSE_LOCATION", "ACCESS_WIFI_STATE"))
+s = s.replace("    <application", rm + '    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n\n    <application', 1)
 open(p, "w").write(s)
 PY2
 python3 -I "$here/tools/gen_synthetic_replay.py" "$TUI_GEN/assets/demo.jsonl" >/dev/null

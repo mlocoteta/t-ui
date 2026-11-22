@@ -43,6 +43,7 @@ public final class HostTests {
         V02.run(fx, replay, a.length > 2 ? a[2] : null);
         V03.run();
         V04.run();
+        V08.run();
         System.out.println("\nHOST TESTS: " + pass + " passed, " + fail + " failed");
         for (String f : failures) System.out.println("  - " + f);
         System.exit(fail == 0 ? 0 : 1);

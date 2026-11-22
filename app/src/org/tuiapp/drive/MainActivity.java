@@ -50,11 +50,14 @@ public final class MainActivity extends Activity implements DriveView.Host {
     private DataSource source;
     private DriveView view;
     private MapEngine engine;
+    private DeviceGps deviceGps;
     private final java.util.List<HeadUnitAdapter> adapters = new java.util.ArrayList<HeadUnitAdapter>();
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         settings = load();
+        settings.deviceGpsSupported = DeviceGps.supported(this);
+        deviceGps = new DeviceGps(this, model);
         // test hook: am start ... --es tui.address <address | demo> (sets and saves the data source; "demo" = demo drive)
         if (getIntent() != null && getIntent().hasExtra("tui.address")) {
             String a = getIntent().getStringExtra("tui.address"); a = a == null ? "" : a.trim();
@@ -86,8 +89,8 @@ public final class MainActivity extends Activity implements DriveView.Host {
     }
 
     @Override protected void onStart() { super.onStart(); if (engine != null) engine.onStart(); for (HeadUnitAdapter h : adapters) h.onStart(); }
-    @Override protected void onResume() { super.onResume(); if (engine != null) engine.onResume(); immersive(); startSource(); }
-    @Override protected void onPause() { stopSource(); if (engine != null) engine.onPause(); super.onPause(); }
+    @Override protected void onResume() { super.onResume(); if (engine != null) engine.onResume(); immersive(); startSource(); updateDeviceGps(false); }
+    @Override protected void onPause() { stopSource(); deviceGps.stop(); if (engine != null) engine.onPause(); super.onPause(); }
     @Override protected void onStop() { for (HeadUnitAdapter h : adapters) h.onStop(); if (engine != null) engine.onStop(); super.onStop(); }
     @Override protected void onDestroy() { for (HeadUnitAdapter h : adapters) h.detach(); if (engine != null) engine.onDestroy(); super.onDestroy(); }
     @Override public boolean onKeyDown(int keyCode, android.view.KeyEvent e) {
@@ -110,6 +113,21 @@ public final class MainActivity extends Activity implements DriveView.Host {
     @Override public void onLowMemory() { super.onLowMemory(); if (engine != null) engine.onLowMemory(); }
     @Override public void onBackPressed() {
         if (view.offlineOpen()) view.closeOffline(); else if (view.panelOpen()) view.closePanel(); else super.onBackPressed();
+    }
+
+    // ------------------------------------------------------------------ optional device GPS (opt-in)
+    static final int REQ_LOCATION = 41;
+    /** start / stop the device GPS per the setting; ask for the permission only right after the user enabled it */
+    private void updateDeviceGps(boolean userAction) {
+        if (!settings.deviceGpsSupported || !settings.useDeviceGps) { deviceGps.stop(); return; }
+        if (DeviceGps.granted(this)) { deviceGps.start(); return; }
+        if (userAction && android.os.Build.VERSION.SDK_INT >= 23) DeviceGps.request(this, REQ_LOCATION);
+    }
+    /** Activity callback (API 23+; no @Override so the sources also compile for Android 4.2) */
+    public void onRequestPermissionsResult(int code, String[] perms, int[] results) {
+        if (code != REQ_LOCATION) return;
+        if (results.length > 0 && results[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) deviceGps.start();
+        else { settings.useDeviceGps = false; save(); applySettings(); }   // declined: turn the setting back off
     }
 
     // ------------------------------------------------------------------ map engine + offline screen
@@ -192,6 +210,7 @@ public final class MainActivity extends Activity implements DriveView.Host {
             if (h.text && Settings.K_MAP_URL.equals(h.key)) { editStyleUrl(); return; }
             if (h.text) { editAddress(); return; }
             if (SettingsPanel.apply(settings, h.key, h.option)) { save(); applySettings(); if (engine != null) engine.setStyleUrl(settings.styleUrl()); }
+            if (Settings.K_DEVICE_GPS.equals(h.key)) updateDeviceGps(true);
             return;
         }
         final Addon a = addons.byId(h.section);

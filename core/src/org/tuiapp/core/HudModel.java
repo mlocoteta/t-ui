@@ -29,6 +29,10 @@ public final class HudModel implements DataSource.Listener {
     // scene overlay (newer than base)
     private SceneFrame scene;
     private RouteGeo route;
+    // position fallbacks: StarPilot navigation status (upstream), then this device's own GPS (opt-in setting)
+    private NavStatus nav; private long navAt = -1; private RouteGeo navRoute; private String navRouteKey = "";
+    private double devLat = Double.NaN, devLon = Double.NaN, devBearing = Double.NaN; private long devAt = -1;
+    public static final long FIX_MAX_AGE_MS = 3000;
     private long frames, sceneFrames;
 
     private Addons addons = Addons.NONE;
@@ -45,7 +49,7 @@ public final class HudModel implements DataSource.Listener {
 
     /** forget everything (the data source changed) */
     public synchronized void reset() {
-        base = null; scene = null; route = null; baseAt = goodAt = sceneAt = prevSceneAt = -1; onroadAt[0] = -1;
+        base = null; scene = null; route = null; nav = null; navAt = -1; navRoute = null; navRouteKey = ""; devAt = -1; baseAt = goodAt = sceneAt = prevSceneAt = -1; onroadAt[0] = -1;
         distM = 0; lastV = Double.NaN; lastVAt = -1;
         stale = false; staleAgeS = Double.NaN; link = LinkState.SEARCHING; linkDetail = ""; frames = sceneFrames = 0;
     }
@@ -95,6 +99,20 @@ public final class HudModel implements DataSource.Listener {
 
     @Override public synchronized void onRoute(RouteGeo r, long now) { route = r; }
 
+    @Override public synchronized void onNav(NavStatus n, long now) {
+        nav = n; navAt = now;
+        if (n.routeLat != null && !n.routeKey.equals(navRouteKey)) {
+            navRouteKey = n.routeKey;
+            navRoute = n.routeLat.length >= 2 ? new RouteGeo(n.routeKey.hashCode(), n.routeLon, n.routeLat, null) : null;
+        }
+    }
+
+    /** this device's own GPS fix (only fed when the user enabled it in settings) */
+    public synchronized void onDeviceFix(double lat, double lon, double bearingDeg, long now) {
+        if (Double.isNaN(lat) || Double.isNaN(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return;
+        devLat = lat; devLon = lon; devBearing = bearingDeg; devAt = now;
+    }
+
     @Override public synchronized void onLink(LinkState st, String detail) { link = st; linkDetail = detail == null ? "" : detail; }
 
     public synchronized long frames() { return frames; }
@@ -125,10 +143,19 @@ public final class HudModel implements DataSource.Listener {
         v.leadPresent = b.leadPresent; v.leadDRel = b.leadDRel; v.leadYRel = b.leadYRel; v.leadVRel = b.leadVRel; v.leadTrackId = b.leadTrackId;
         v.tracks = b.tracks;
         v.laneLines = b.laneLines; v.roadEdges = b.roadEdges; v.path = b.path; v.laneLineProbs = b.laneLineProbs;
-        if (b.hasFix()) { v.lat = b.gpsLat; v.lon = b.gpsLon; v.bearingDeg = b.gpsBearing; }
+        if (b.hasFix()) { v.lat = b.gpsLat; v.lon = b.gpsLon; v.bearingDeg = b.gpsBearing; v.fixSource = "comma"; }
         v.navActive = b.navActive; v.navModifier = b.navModifier; v.navType = b.navType; v.navStreet = b.navStreet;
         v.navDistM = b.navDistM; v.navRemainM = b.navRemainM; v.navRemainS = b.navRemainS;
         v.route = b.navActive && route != null && route.gen == b.navGen ? route : null;
+        // StarPilot's own navigation (upstream /api/navigation/status) fills position / guidance the HUD frame lacks
+        NavStatus ns = nav != null && navAt >= 0 && now - navAt <= FIX_MAX_AGE_MS ? nav : null;
+        if (!v.hasFix() && ns != null && ns.hasFix() && ns.liveFix) { v.lat = ns.lat; v.lon = ns.lon; v.bearingDeg = ns.bearing; v.fixSource = "comma-nav"; }
+        if (!v.navActive && ns != null && ns.guiding()) {
+            v.navActive = true; v.navType = ns.maneuverType; v.navModifier = ns.maneuverModifier; v.navStreet = ns.text;
+            v.navDistM = ns.distM; v.navRemainM = ns.remainM; v.navRemainS = ns.remainS;
+            if (v.route == null) v.route = navRoute;
+        }
+        if (!v.hasFix() && devAt >= 0 && now - devAt <= FIX_MAX_AGE_MS) { v.lat = devLat; v.lon = devLon; v.bearingDeg = devBearing; v.fixSource = "device"; }
         v.alert1 = b.alertText1; v.alert2 = b.alertText2; v.alertStatus = b.alertStatus;
         SceneFrame s = scene;
         if (s != null && HoldRule.sceneUsable(now, baseAt, sceneAt, SCENE_BASE_MS) && now - sceneAt <= SCENE_BASE_MS) {

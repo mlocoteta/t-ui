@@ -45,6 +45,8 @@ public final class ViewState implements Cloneable {
     public String navModifier, navType, navStreet;
     public double navDistM = Double.NaN, navRemainM = Double.NaN, navRemainS = Double.NaN;
     public RouteGeo route;
+    /** where the position came from: comma (HUD gps), comma-nav (StarPilot navigation), device (this device's GPS) */
+    public String fixSource;
     public boolean hasFix() { return !Double.isNaN(lat) && !Double.isNaN(lon); }
 
     public String alert1 = "", alert2 = "", alertStatus = "normal";

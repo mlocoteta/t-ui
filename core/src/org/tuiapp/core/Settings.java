@@ -14,7 +14,7 @@ public final class Settings {
 
     public static final String K_ADDR = "commaAddress", K_THEME = "theme", K_UNITS = "units", K_LAYOUT = "layoutMode",
             K_SCREEN_ON = "keepScreenOn", K_RHD = "rightHandDrive", K_MAP_ONLINE = "mapOnline", K_MAP_SOURCE = "mapSource",
-            K_EGO_COLOR = "egoColor", K_MAP_URL = "mapCustomStyleUrl", K_OFFLINE_CAP = "offlineCapMb", K_OFFLINE = "offlineMaps";
+            K_EGO_COLOR = "egoColor", K_DEVICE_GPS = "useDeviceGps", K_MAP_URL = "mapCustomStyleUrl", K_OFFLINE_CAP = "offlineCapMb", K_OFFLINE = "offlineMaps";
 
     public String commaAddress = "";
     public ThemePref theme = ThemePref.AUTO;
@@ -27,6 +27,10 @@ public final class Settings {
     public long offlineCapMb = 500;
     /** my car colour (opaque ARGB), 0 = theme default */
     public int egoColor;
+    /** use this device's own GPS for the map when the comma gives no position (opt-in; asks for location permission) */
+    public boolean useDeviceGps;
+    /** set by the app: this build can use the device's GPS (MapLibre build); not persisted */
+    public boolean deviceGpsSupported;
     /** preset swatches for "My car colour" (neutral paint names, no maker colours); 0 = theme default */
     public static final int[] EGO_PRESETS = {0, 0xFF1B1D21, 0xFFF2F3F5, 0xFFB8BDC4, 0xFF5E646C, 0xFF1F3F7A, 0xFF9C1C1C, 0xFF2E4A3A};
     public static final String[] EGO_PRESET_NAMES = {"Auto", "Black", "White", "Silver", "Grey", "Blue", "Red", "Green"};
@@ -45,6 +49,7 @@ public final class Settings {
         String src = m.get(K_MAP_SOURCE); s.mapSource = src != null && java.util.Arrays.asList(MapSources.IDS).contains(src) ? src : MapSources.OFM_LIBERTY;
         String u = m.get(K_MAP_URL); s.mapCustomUrl = u == null ? "" : u.trim();
         s.egoColor = parseColor(m.get(K_EGO_COLOR));
+        s.useDeviceGps = "true".equals(m.get(K_DEVICE_GPS));
         try { s.offlineCapMb = Math.max(10, Math.min(20000, Long.parseLong(String.valueOf(m.get(K_OFFLINE_CAP))))); } catch (NumberFormatException e) { s.offlineCapMb = 500; }
         for (Map.Entry<String, String> e : m.entrySet()) if (e.getKey().startsWith("addon.")) s.extra.put(e.getKey(), e.getValue());
         return s;
@@ -57,6 +62,7 @@ public final class Settings {
         m.put(K_MAP_ONLINE, String.valueOf(mapOnline)); m.put(K_MAP_SOURCE, mapSource); m.put(K_MAP_URL, mapCustomUrl);
         m.put(K_OFFLINE_CAP, String.valueOf(offlineCapMb));
         m.put(K_EGO_COLOR, egoColor == 0 ? "" : hex(egoColor));
+        m.put(K_DEVICE_GPS, String.valueOf(useDeviceGps));
         m.putAll(extra);
         return m;
     }

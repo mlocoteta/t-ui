@@ -22,9 +22,10 @@ online tiles -> offline / cached tiles -> built-in renderer:
 - otherwise, fix inside a downloaded area: offline map (MapLibre is set to not connect at all);
 - otherwise, style loaded from cache: cached map (tiles may be missing);
 - style failed / nothing loaded, or the lean build: built-in renderer with the comma's route around the fix.
-Position, heading, route and next turn come only from the comma (`/api/hud` `gps`, `nav`; route geometry from
-`/api/hud/route?gen=g`, fetched once per route generation). The app asks for no location permission (MapLibre's
-merged location / Wi-Fi permissions are removed in the manifest).
+Position and heading come from the comma (`/api/hud` `gps` with the comma patch, else StarPilot's
+`/api/navigation/status` location); route and next turn from `/api/navigation/status`. Optional fallback in the
+MapLibre build: Settings -> "Use this device's GPS" (off by default); the location permission is requested only when
+the user turns it on, and fixes never leave the device. The lean build has no location permission.
 
 ## Tile sources (Settings -> Map source)
 - **OpenFreeMap** (default; `liberty` style) and **OpenFreeMap dark**: free, no API key, OpenMapTiles schema.

@@ -9,6 +9,20 @@ The release workflow uses the section of the tagged version as the GitHub releas
 ### Fixed
 ### Comma side (HUD API patch / schemaVersion needed)
 
+## [0.1.1-alpha] - 2026-11-22
+Single-user completeness: a stranger with StarPilot + the comma patch + this APK gets position, guidance and route.
+### Added
+- Map position from the comma patch's new `gps` block (t-ui-comma-patch v0.1.1).
+- Turn-by-turn guidance, remaining distance / time and the route line from StarPilot's own navigation
+  (`GET /api/navigation/status`, upstream, polled ~1 Hz with routeKey).
+- Optional "Use this device's GPS" setting (MapLibre build, off by default): used only when the comma gives no
+  position; asks for the location permission only when turned on.
+### Changed
+- MapLibre build now declares the fine-location permission (requested at run time only for the setting above).
+### Comma side
+- Update to t-ui-comma-patch v0.1.1 for the `gps` block; v0.1.0 still works (position then from navigation status
+  or the device).
+
 ## [0.1.0-alpha] - 2026-11-22
 First public pre-release. Not yet tested on a real head unit or tablet with a live comma; treat it as an alpha.
 ### Added

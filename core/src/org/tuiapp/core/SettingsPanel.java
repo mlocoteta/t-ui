@@ -41,6 +41,9 @@ public final class SettingsPanel {
         r.add(new SettingRow(Settings.K_MAP_SOURCE, "Map source", MapSources.LABELS, MapSources.index(s.mapSource)).note(MapSources.attribution(s.mapSource), false));
         if (MapSources.CUSTOM.equals(s.mapSource))
             r.add(SettingRow.text(Settings.K_MAP_URL, "Custom style URL", s.mapCustomUrl.isEmpty() ? "not set" : s.mapCustomUrl).note("MapLibre style JSON; no keys are added by the app", false));
+        if (s.deviceGpsSupported)
+            r.add(new SettingRow(Settings.K_DEVICE_GPS, "Use this device's GPS", OFF_ON, s.useDeviceGps ? 1 : 0)
+                    .note("Only when the comma gives no position. Asks for location permission; stays on the device", false));
         r.add(new SettingRow(Settings.K_OFFLINE, "Offline maps", new String[]{"Open"}, -1).note("Download areas for driving without a network", false));
         return r;
     }
@@ -59,6 +62,7 @@ public final class SettingsPanel {
         if (Settings.K_SCREEN_ON.equals(key) && (o == 0 || o == 1)) { boolean c = s.keepScreenOn != (o == 1); s.keepScreenOn = o == 1; return c; }
         if (Settings.K_RHD.equals(key) && (o == 0 || o == 1)) { boolean c = s.rightHandDrive != (o == 1); s.rightHandDrive = o == 1; return c; }
         if (Settings.K_EGO_COLOR.equals(key) && o >= 0 && o < Settings.EGO_PRESETS.length) { boolean c = s.egoColor != Settings.EGO_PRESETS[o]; s.egoColor = Settings.EGO_PRESETS[o]; return c; }
+        if (Settings.K_DEVICE_GPS.equals(key) && (o == 0 || o == 1)) { boolean c = s.useDeviceGps != (o == 1); s.useDeviceGps = o == 1; return c; }
         if (Settings.K_MAP_ONLINE.equals(key) && (o == 0 || o == 1)) { boolean c = s.mapOnline != (o == 1); s.mapOnline = o == 1; return c; }
         if (Settings.K_MAP_SOURCE.equals(key) && o >= 0 && o < MapSources.IDS.length) { boolean c = !MapSources.IDS[o].equals(s.mapSource); s.mapSource = MapSources.IDS[o]; return c; }
         return false;

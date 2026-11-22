@@ -13,6 +13,8 @@ public interface DataSource {
         void onLink(LinkState state, String detail);
         /** route geometry for nav generation r.gen (sources that support it) */
         default void onRoute(RouteGeo r, long now) { }
+        /** StarPilot navigation status (position, instruction, route), polled ~1 Hz by sources that support it */
+        default void onNav(NavStatus n, long now) { }
     }
 
     /** Monotonic ms clock; replaceable in tests. */

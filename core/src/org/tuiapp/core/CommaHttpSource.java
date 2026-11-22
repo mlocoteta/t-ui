@@ -84,6 +84,7 @@ public final class CommaHttpSource implements DataSource {
                 if (shown != LinkState.LIVE) { shown = LinkState.LIVE; l.onLink(shown, base); }
                 l.onHud(f, clock.now());
                 maybeFetchRoute(f, l);
+                maybePollNav(l);
             } catch (Exception e) {
                 hudFail++; fails++;
                 LinkState st = e instanceof ConnectException || e instanceof SocketTimeoutException || e instanceof NoRouteToHostException
@@ -96,6 +97,25 @@ public final class CommaHttpSource implements DataSource {
     }
 
     // ------------------------------------------------------------------ route geometry (once per nav generation)
+    // ------------------------------------------------------------------ StarPilot navigation status (upstream Galaxy)
+    public static final long NAV_POLL_MS = 1000;
+    private long navAt = -1, navOffUntil = -1; private String navRouteKey = "";
+    public volatile int navPolls;
+    private void maybePollNav(Listener l) {
+        long now = clock.now();
+        if ((navAt >= 0 && now - navAt < NAV_POLL_MS) || now < navOffUntil) return;
+        navAt = now;
+        try {
+            Resp r = get("/api/navigation/status" + (navRouteKey.isEmpty() ? "" : "?routeKey=" + navRouteKey), CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
+            if (r.code == 404) { navOffUntil = now + 60000; return; }   // a build without StarPilot navigation
+            if (r.code != 200) return;
+            NavStatus n = NavStatus.parse(r.body);
+            if (n.routeKey.matches("[0-9a-f]{16}")) navRouteKey = n.routeKey;
+            navPolls++;
+            l.onNav(n, clock.now());
+        } catch (Exception ignored) { }
+    }
+
     private int routeGen = -1; private long routeTryAt = -1;
     public volatile int routesFetched;
     private void maybeFetchRoute(HudFrame f, Listener l) {

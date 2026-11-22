@@ -21,6 +21,15 @@ One line per new model frame, rate-limited to `hz`; `{"k":1}` keep-alive after 2
 point lists are flat `[x0,y0,x1,y1,...]`; `yr` and `c` are positive when turning left.
 Status codes: 401 session needed, 404 older build (poll only), 429 two streams already open, 400 bad query.
 
+## gps block (comma patch v0.1.1+)
+`gps {lat, lon, bearingDeg, source, validForMs}`: the comma's current position from StarPilot's GPS sources; null = no fix.
+
+## GET /api/navigation/status (upstream StarPilot, polled ~1 Hz)
+`status` (guiding / arrived / ...), `instruction {text, maneuverType, maneuverModifier, distanceMeters,
+remainingDistanceMeters, remainingDurationSeconds}`, `route [{latitude, longitude}]` (skipped with `routeUnchanged`
+when the client sends the current `routeKey`), `location {latitude, longitude, bearing, source, validForMs}`.
+Position priority in T-UI: HUD `gps` > navigation `location` (live fixes only) > this device's GPS (opt-in).
+
 ## Auth
 On the comma's own hotspot Galaxy treats the client as local. If a request answers 401, the app calls
 `GET /api/auth/session` once, keeps the `galaxy_session` cookie and renews it every 4 minutes.

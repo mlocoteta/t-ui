@@ -43,8 +43,9 @@ responsible at all times. This app is a secondary display; watch the road and th
 - A comma device running openpilot with the **HUD API** (`GET /api/hud`, `GET /api/hud/scene`):
   today this is a patch on top of StarPilot's Galaxy web server: <https://github.com/mlocoteta/t-ui-comma-patch>
   (docs/COMMA-SIDE.md). Stock openpilot and stock
-  StarPilot do not serve these endpoints yet. The current patch does not include the comma's GPS position, navigation
-  or route yet, so the map pane shows "Waiting for GPS from the comma" (the drive view works fully).
+  StarPilot do not serve these endpoints yet. Map position comes from the patch's `gps` block; turn-by-turn guidance
+  and the route line come from StarPilot's own navigation (`/api/navigation/status`, no patch needed, needs StarPilot
+  navigation set up). Optional: Settings -> "Use this device's GPS" (MapLibre build) when the comma gives no position.
 - The display joined to the comma's Wi-Fi hotspot (or the same network).
 
 ## Install (APK from GitHub Releases)
