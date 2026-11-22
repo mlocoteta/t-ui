@@ -61,7 +61,8 @@ Both use the same package and signing key, so you can switch by installing the o
    developer options or a vendor "app install" switch; some vendor firmwares only run allow-listed apps (then a
    head-unit add-on or the vendor's own method is needed). Auto-start at ignition is not built in yet.
 5. Updates: no auto-update. Watch the Releases page and install the newer APK over the old one (settings and offline
-   maps are kept). Release signing certificate SHA-256: _published with the first release_.
+   maps are kept). Release signing certificate SHA-256:
+   `8C:9B:D3:93:02:1E:10:CB:08:9A:B5:DE:48:55:4B:A6:53:C7:52:7F:59:F5:30:A7:72:89:A7:8F:D4:DF:1F:AE`
 
 ## Run
 1. Open T-UI. With no address set it plays a synthetic demo drive.
