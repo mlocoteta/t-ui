@@ -1,0 +1,11 @@
+{"schemaVersion":3,"state":"current","seq":41,"ageSeconds":0.11,"onroad":true,"onroadAgeSeconds":0.1,"isMetric":false,
+ "engaged":true,"active":true,"available":true,"status":"engaged","vEgo":24.5,"vCruise":29.06,"vCruiseCluster":29.06,
+ "lead":{"dRel":31.2,"yRel":0.4,"vRel":-1.1,"vLead":23.4,"trackId":5},
+ "steering":{"latActive":true,"source":"model","detail":null,"fault":null},
+ "alert":{"text1":"","text2":"","status":"normal","size":"none"},"experimental":false,"personality":"standard",
+ "personalityWrite":false,"slc":{"limit":29.06,"offset":0,"source":"map"},"blinker":"none","gear":"drive","gearLetter":"D",
+ "model":{"laneLines":[[[0,-5.4],[12,-5.5],[48,-5.9]],[[0,-1.8],[12,-1.9],[48,-2.3]],[[0,1.8],[12,1.7],[48,1.3]],[[0,5.4],[12,5.3],[48,4.9]]],
+          "roadEdges":[[[0,-5.8],[12,-5.9],[48,-6.3]],[[0,5.8],[12,5.7],[48,5.3]]],"path":[[0,0],[12,-0.1],[48,-0.5]],
+          "laneLineProbs":[0.5,0.97,0.96,0.4],"roadEdgeStds":[0.3,0.4]},
+ "tracks":[{"id":5,"dRel":31.2,"yRel":0.4,"vRel":-1.1,"vLead":23.4,"stopped":false},{"id":9,"dRel":18.0,"yRel":-3.6,"vRel":0.5,"vLead":25.0,"stopped":false},{"id":12,"dRel":null,"yRel":1}],
+ "laneChange":{"state":"off","direction":"none"},"distanceBars":2,"egpu":null,"fuel":null,"error":""}

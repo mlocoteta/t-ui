@@ -1,0 +1,63 @@
+// MapLibre flavour. Run through tools/gradle-build.sh: it generates the manifest, assets and icon into $TUI_GEN and
+// keeps every build output and cache outside the project tree (TUI_GRADLE_OUT, GRADLE_USER_HOME, --project-cache-dir).
+plugins { id 'com.android.application' version '8.13.2' }
+
+def brand = file('core/src/org/tuiapp/core/Brand.java').text
+def brandStr = { String k -> (brand =~ /${k} = "([^"]*)"/)[0][1] }
+def versionCodeFromBrand = ((brand =~ /VERSION_CODE = (\d+);/)[0][1]) as int
+def gen = System.getenv('TUI_GEN') ?: '/tmp/tui-gradle/gen'
+def addonList = (findProperty('addons') ?: '').toString().split(/[ ,]+/).findAll { it }
+def abiList = (findProperty('abis') ?: 'arm64-v8a,armeabi-v7a').toString().split(/[ ,]+/).findAll { it }
+layout.buildDirectory = file(System.getenv('TUI_GRADLE_OUT') ?: '/tmp/tui-gradle/build')
+
+android {
+    namespace brandStr('APP_ID')
+    compileSdk 34
+    defaultConfig {
+        applicationId brandStr('APP_ID')
+        minSdk 23            // MapLibre Native 13 needs API 23; the lean build (tools/build.sh) stays at 21
+        targetSdk 34
+        versionCode versionCodeFromBrand
+        versionName brandStr('VERSION_NAME') + '-maplibre'
+        ndk { abiFilters.addAll(abiList) }
+    }
+    sourceSets {
+        main {
+            manifest.srcFile "$gen/AndroidManifest.xml"
+            java.srcDirs = ['core/src', 'app/src', 'map-maplibre/src'] + addonList.collect { "addons/$it/src" }
+            assets.srcDirs = ["$gen/assets"]
+            res.srcDirs = ["$gen/res"]
+        }
+    }
+    signingConfigs {
+        debug {   // throwaway debug key outside the tree (same as tools/build.sh)
+            storeFile file(System.getenv('TUI_DEBUG_KEYSTORE') ?: "${System.getProperty('user.home')}/bulk/tui-debug-key/debug.jks")
+            storePassword 'android'; keyAlias 'tuidebug'; keyPassword 'android'
+        }
+        // release: key from the environment only (docs/RELEASING.md; GitHub encrypted secrets in CI); never in the repo
+        if (System.getenv('TUI_RELEASE_KEYSTORE')) {
+            release {
+                storeFile file(System.getenv('TUI_RELEASE_KEYSTORE'))
+                storePassword System.getenv('TUI_KEYSTORE_PASS'); keyAlias System.getenv('TUI_KEY_ALIAS')
+                keyPassword System.getenv('TUI_KEY_PASS') ?: System.getenv('TUI_KEYSTORE_PASS')
+            }
+        }
+    }
+    buildTypes {
+        debug { signingConfig signingConfigs.debug }
+        release {
+            minifyEnabled false
+            if (System.getenv('TUI_RELEASE_KEYSTORE')) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+    lint { abortOnError false; checkReleaseBuilds false }
+    packaging { jniLibs { useLegacyPackaging false } }
+}
+
+dependencies {
+    // MapLibre Native Android, OpenGL ES build (BSD-2-Clause). The plain "android-sdk" artifact is the Vulkan build.
+    implementation 'org.maplibre.gl:android-sdk-opengl:13.7.1'
+    // already a runtime dependency of MapLibre; on the compile path so the engine can set its HTTP client (User-Agent, 4 parallel)
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+}

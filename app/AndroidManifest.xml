@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- @APP_ID@ / @APP_NAME@ are filled in by tools/build.sh from core/.../Brand.java (one place for the name). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="@APP_ID@">
+
+    <!-- Only what a read-only display needs: the network (comma, map tiles). No location, no storage permission. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- to pick online map tiles vs offline areas (no location permission: the position comes from the comma) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:label="@APP_NAME@"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="true"
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
+        <activity
+            android:name="org.tuiapp.drive.MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density"
+            android:screenOrientation="unspecified">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

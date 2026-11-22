@@ -1,0 +1,2 @@
+{"schemaVersion":1,"state":"current","onroad":true,"isMetric":true,"engaged":false,"available":true,"vEgo":13.9,
+ "vCruise":null,"lead":{"dRel":20.0,"vRel":0.0,"vLead":13.9,"radar":true},"alert":{"text1":"Steering Unavailable","text2":"Take control","status":"critical","size":"mid"}}

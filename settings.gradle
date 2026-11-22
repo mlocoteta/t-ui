@@ -1,0 +1,7 @@
+// Gradle build for the MapLibre flavour (tools/gradle-build.sh). The lean, dependency-free APK is tools/build.sh.
+pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories { google(); mavenCentral() }
+}
+rootProject.name = 'tui'

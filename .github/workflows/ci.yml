@@ -1,0 +1,26 @@
+# Build + host tests + privacy checks on every push / pull request. No secrets are used or needed.
+name: ci
+on: [push, pull_request]
+permissions: { contents: read }
+jobs:
+  host-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - name: Android SDK pieces
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "platforms;android-17" "build-tools;34.0.0" > /dev/null
+      - name: Host tests
+        run: tools/hosttest.sh
+      - name: Clean-export check (no private markers list in public CI)
+        run: TUI_NO_PRIVATE_MARKERS=1 tools/clean-export-check.sh
+      - name: Secret scan
+        run: tools/secret-scan.sh
+      - name: Lean APK (built-in map, Android 5+)
+        run: TUI_DEBUG_KEYSTORE=$RUNNER_TEMP/debug.jks tools/build.sh
+      - name: MapLibre APK (Gradle wrapper, Android 6+)
+        run: TUI_DEBUG_KEYSTORE=$RUNNER_TEMP/debug.jks TUI_GRADLE=./gradlew TUI_GRADLE_WORK=$RUNNER_TEMP/tui-gradle tools/gradle-build.sh
+      - uses: actions/upload-artifact@v4
+        with: { name: debug-apks, path: /tmp/tui-build/*.apk, retention-days: 7 }

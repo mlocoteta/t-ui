@@ -1,0 +1,8 @@
+# build output never lives in the tree (tools/*.sh write to /tmp); keep it that way
+*.apk
+*.dex
+*.class
+*.jks
+*.keystore
+/out/
+/build/

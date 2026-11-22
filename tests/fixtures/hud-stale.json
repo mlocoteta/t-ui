@@ -1,0 +1,4 @@
+{"schemaVersion":3,"state":"stale","seq":42,"ageSeconds":1.9,"onroad":true,"onroadAgeSeconds":1.7,"isMetric":null,
+ "engaged":true,"active":null,"available":null,"status":"engaged","vEgo":24.1,"vCruise":null,"vCruiseCluster":null,
+ "lead":null,"steering":{"latActive":null,"source":"model","detail":null,"fault":null},"alert":null,"model":null,
+ "tracks":null,"slc":null,"laneChange":null,"gearLetter":null,"error":""}
