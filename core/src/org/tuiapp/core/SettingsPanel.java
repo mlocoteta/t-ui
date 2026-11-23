@@ -44,8 +44,14 @@ public final class SettingsPanel {
         if (s.deviceGpsSupported)
             r.add(new SettingRow(Settings.K_DEVICE_GPS, "Use this device's GPS", OFF_ON, s.useDeviceGps ? 1 : 0)
                     .note("Only when the comma gives no position. Asks for location permission; stays on the device", false));
+        r.add(new SettingRow(Settings.K_ABOUT, "About and licences", new String[]{"Open"}, -1).note("Version, safety notice, open-source licences", false));
         r.add(new SettingRow(Settings.K_OFFLINE, "Offline maps", new String[]{"Open"}, -1).note("Download areas for driving without a network", false));
         return r;
+    }
+
+    /** settings are read-only while the car moves (speed >= 1 m/s, or driving with unknown speed) */
+    public static boolean locked(ViewState v) {
+        return v != null && v.driving && (Double.isNaN(v.speedMps) || v.speedMps >= 1.0);
     }
 
     static String[] egoOptions() { String[] o = new String[Settings.EGO_PRESETS.length + 1]; o[0] = "Auto"; for (int i = 1; i < Settings.EGO_PRESETS.length; i++) o[i] = ""; o[o.length - 1] = "Custom"; return o; }
@@ -81,7 +87,8 @@ public final class SettingsPanel {
         int panel = t.dark ? 0xFF1A1D22 : 0xFFF7F8FA;
         g.fillRoundRect(x0, y0, pw, ph, L.pxf(18), panel);
         g.text("Settings", x0 + L.pxf(20), y0 + L.pxf(36), L.pxf(22), Gfx.W_SEMIBOLD, Gfx.ALIGN_LEFT, t.text);
-        g.text(Brand.APP_NAME + " " + Brand.VERSION_NAME + "  ·  read-only display", x0 + L.pxf(20) + g.textWidth("Settings", L.pxf(22), Gfx.W_SEMIBOLD) + L.pxf(14),
+        boolean locked = locked(v);
+        g.text(locked ? "Locked while driving: stop the car to change settings" : Brand.APP_NAME + " " + Brand.VERSION_NAME + "  ·  read-only display", x0 + L.pxf(20) + g.textWidth("Settings", L.pxf(22), Gfx.W_SEMIBOLD) + L.pxf(14),
                 y0 + L.pxf(35), L.pxf(12), Gfx.W_REGULAR, Gfx.ALIGN_LEFT, t.text3);
         float dw = L.pxf(92), dh = L.pxf(40), dx = x0 + pw - dw - L.pxf(14), dy = y0 + L.pxf(10);
         g.fillRoundRect(dx, dy, dw, dh, dh / 2, t.accent);
@@ -109,6 +116,7 @@ public final class SettingsPanel {
             g.text(titles.get(sct), cx + L.pxf(4), cy + L.pxf(18), L.pxf(13), Gfx.W_BOLD, Gfx.ALIGN_LEFT, sct > 0 ? t.caution : t.text2);
             cy += L.pxf(28);
             for (SettingRow r : rows.get(sct)) {
+                if (locked) r.enabled(false);
                 if (col < cols - 1 && cy + sc + rowHeight(g, L, r, colW) > bottomLimit) { col++; cy = top; cx = x0 + gap + col * (colW + gap); }
                 cy = row(g, L, t, r, ids.get(sct), cx, cy, colW);
                 contentBottom = Math.max(contentBottom, cy);

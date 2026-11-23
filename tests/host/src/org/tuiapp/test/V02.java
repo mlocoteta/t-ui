@@ -53,7 +53,7 @@ public final class V02 {
     static void panel() {
         sec("settings-panel");
         Settings s = new Settings();
-        ok(SettingsPanel.coreRows(s).size() == 10, "10 core rows (address, theme, units, layout, screen on, RHD, my car colour, online tiles, source, offline)");
+        ok(SettingsPanel.coreRows(s).size() == 11, "11 core rows (address, theme, units, layout, screen on, RHD, my car colour, online tiles, source, about, offline)");
         ok(SettingsPanel.apply(s, Settings.K_THEME, 2) && s.theme == Settings.ThemePref.DARK, "theme chip");
         ok(!SettingsPanel.apply(s, Settings.K_THEME, 2), "same value: no change");
         ok(SettingsPanel.apply(s, Settings.K_UNITS, 1) && s.units == Settings.Units.MPH, "units chip");
@@ -144,6 +144,7 @@ public final class V02 {
         ok("hello".equals(t.seen), "add-on reads extra /api/hud fields from raw");
         ok(HudFrame.parse(cur).raw.containsKey("schemaVersion"), "raw map kept on the frame");
         ViewState v = m.snapshot(10); v.addonCards = a.cards(v, new Settings(), 10);
+        v.driving = false;   // settings are locked while moving; this test is about the parked panel
         ok(v.addonCards.size() == 1 && "Extra: hello".equals(v.addonCards.get(0).text), "add-on card");
         Layout L = Layout.compute(800, 480, 1f);
         BufferedImage img = new BufferedImage(800, 480, BufferedImage.TYPE_INT_ARGB);

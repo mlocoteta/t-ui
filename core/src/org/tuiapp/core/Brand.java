@@ -9,8 +9,8 @@ package org.tuiapp.core;
 public final class Brand {
     public static final String APP_NAME = "T-UI";
     public static final String APP_ID = "org.tuidrive.app";
-    public static final String VERSION_NAME = "0.1.1-alpha";
-    public static final int VERSION_CODE = 2;
+    public static final String VERSION_NAME = "0.1.2-alpha";
+    public static final int VERSION_CODE = 3;
     public static final String TAGLINE = "A driving display for openpilot/StarPilot";
     /** HTTP User-Agent sent to the comma (no device or user identifiers). */
     public static final String USER_AGENT = APP_NAME + "/" + VERSION_NAME;

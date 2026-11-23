@@ -9,6 +9,14 @@ The release workflow uses the section of the tagged version as the GitHub releas
 ### Fixed
 ### Comma side (HUD API patch / schemaVersion needed)
 
+## [0.1.2-alpha] - 2026-11-23
+### Added
+- First-run safety notice ("Before you drive"), shown until accepted.
+- Settings -> About and licences: version, safety summary, open-source licences, full licence texts.
+- Three-zone layout for ultrawide screens (aspect >= 2.2): info column | road view | map (mirrored for right-hand drive).
+### Changed
+- Settings are read-only while the car moves (only Done works); unlocked when stopped or parked.
+
 ## [0.1.1-alpha] - 2026-11-22
 Single-user completeness: a stranger with StarPilot + the comma patch + this APK gets position, guidance and route.
 ### Added

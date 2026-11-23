@@ -44,6 +44,7 @@ public final class HostTests {
         V03.run();
         V04.run();
         V08.run();
+        V12.run();
         System.out.println("\nHOST TESTS: " + pass + " passed, " + fail + " failed");
         for (String f : failures) System.out.println("  - " + f);
         System.exit(fail == 0 ? 0 : 1);
@@ -225,7 +226,11 @@ public final class HostTests {
                 for (boolean left : new boolean[]{true, false}) checkLayout(Layout.compute(w, h, d, mode, left));
         }
         Layout uw = Layout.compute(2400, 1080, 2.0f);
-        ok(Math.abs(uw.scene.w - 0.42 * 2400) < 2, "ultrawide: scene pane 42 %");
+        ok(uw.threeZone() && Math.abs(uw.scene.w - 0.4 * 2400) < 2 && uw.info.x == 0 && uw.scene.x == uw.info.r() && uw.map.x == uw.scene.r(), "ultrawide (L2): info | scene | map");
+        ok(uw.speed.inside(uw.info) && uw.setLimit.inside(uw.info) && uw.chip.inside(uw.info) && uw.alert.inside(uw.scene), "ultrawide: cards in the info column, alert over the scene");
+        Layout uwr = Layout.compute(2400, 1080, 2.0f, Layout.Mode.SPLIT, false);
+        ok(uwr.info.r() == 2400 && uwr.map.x == 0, "ultrawide RHD: mirrored");
+        ok(!Layout.compute(1920, 1080, 1.5f).threeZone(), "16:9 split stays two zones");
         Layout p = Layout.compute(1080, 1920, 2.625f);
         ok(p.portrait && p.scene.y == 0 && p.map.y == p.scene.b() && p.scene.w == 1080, "portrait: scene on top, map below");
         ok(p.bar.h == p.px(56) && p.bar.b() == 1920 && p.map.b() == p.bar.y, "portrait (L3): 56 dp bottom bar under the map");
@@ -243,7 +248,7 @@ public final class HostTests {
         String n = L.toString();
         Layout.R[] cards = L.cards();
         boolean inside = true, overlap = false;
-        for (Layout.R c : cards) inside &= c.inside(L.scene) && c.inside(L.screen) && c.w > 0 && c.h > 0;
+        for (Layout.R c : cards) inside &= c.inside(c == L.alert || !L.threeZone() ? L.scene : L.info) && c.inside(L.screen) && c.w > 0 && c.h > 0;
         for (int i = 0; i < cards.length; i++) for (int j = i + 1; j < cards.length; j++) overlap |= cards[i].intersects(cards[j]);
         ok(inside, "cards inside scene: " + n);
         ok(!overlap, "cards do not overlap: " + n);
@@ -251,7 +256,7 @@ public final class HostTests {
             boolean mo = false; for (Layout.R c : cards) mo |= c.intersects(L.map);
             ok(!mo && L.map.inside(L.screen), "corner map clear of cards: " + n);
         } else {
-            ok(!L.scene.intersects(L.map) && !L.map.intersects(L.bar) && (long) L.scene.w * L.scene.h + (long) L.map.w * L.map.h + (long) L.bar.w * L.bar.h == (long) L.w * L.h, "panes tile the screen: " + n);
+            ok(!L.scene.intersects(L.map) && !L.map.intersects(L.bar) && !L.info.intersects(L.scene) && !L.info.intersects(L.map) && (long) L.scene.w * L.scene.h + (long) L.map.w * L.map.h + (long) L.bar.w * L.bar.h + (long) L.info.w * L.info.h == (long) L.w * L.h, "panes tile the screen: " + n);
         }
         ok(L.speed.w / L.density >= 120 && L.alert.h / L.density >= 56, "card sizes >= 120 dp / touch 56 dp: " + n);
         ok(L.speed.w <= L.scene.w / 2 + 1, "speed card <= half the scene width: " + n);

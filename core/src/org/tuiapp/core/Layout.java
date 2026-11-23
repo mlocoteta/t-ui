@@ -7,7 +7,8 @@ package org.tuiapp.core;
  *
  * Modes
  *  - FLOATING: full-screen scene, cards float on it, map as a rounded corner inset on the passenger side.
- *  - SPLIT: landscape = scene pane on the driver side + map pane (50/50, 42/58 on ultrawide) (L1/L2);
+ *  - SPLIT: landscape = scene pane on the driver side + map pane (50/50) (L1); aspect >= 2.2 = three zones
+ *           info column (cards) | scene | map (L2);
  *           portrait  = scene on top (55 % of the height above the bar) + map + 56 dp bottom bar (L3).
  *  - AUTO: portrait -> SPLIT; landscape >= 900 dp wide and aspect >= 1.5 -> SPLIT; else FLOATING.
  * Cards (speed, state chip, set/limit, stale label) sit in the scene's top corner on the driver side; the alert
@@ -33,6 +34,9 @@ public final class Layout {
     public final boolean portrait, driverLeft;
     public final Mode mode;
     public final R screen, scene, map, speed, chip, setLimit, alert, staleLabel, extra, bar;
+    /** L2 three-zone ultrawide: the info column on the driver side that holds the cards (width 0 otherwise) */
+    public final R info;
+    public boolean threeZone() { return info.w > 0; }
     /** cards (and chip / stale pills) anchor on the left edge of the scene */
     public final boolean cardsLeft;
     /** map is a floating corner inset (true) or a full pane (false) */
@@ -52,7 +56,7 @@ public final class Layout {
         mode = m;
         screen = new R(0, 0, w, h);
         int pad = px(12);
-        R mp;
+        R mp; R inf = new R(0, 0, 0, 0);
 
         if (mode == Mode.FLOATING) {
             scene = screen;
@@ -67,26 +71,33 @@ public final class Layout {
             scene = new R(0, 0, w, sh);
             mp = new R(0, sh, w, h - bh - sh);
             mapInset = false;
+        } else if (aspect >= 2.2f) {   // L2 three-zone ultrawide: info column | scene | map (mirrored for RHD)
+            int iw = Math.max(px(190), Math.round(w * 0.2f)), sw = Math.round(w * 0.4f);
+            if (driverLeft) { inf = new R(0, 0, iw, h); scene = new R(iw, 0, sw, h); mp = new R(iw + sw, 0, w - iw - sw, h); }
+            else { inf = new R(w - iw, 0, iw, h); scene = new R(w - iw - sw, 0, sw, h); mp = new R(0, 0, w - iw - sw, h); }
+            mapInset = false;
         } else {
-            float f = aspect >= 2.2f ? 0.42f : 0.5f;
-            int sw = Math.round(w * f);
+            int sw = Math.round(w * 0.5f);
             scene = driverLeft ? new R(0, 0, sw, h) : new R(w - sw, 0, sw, h);
             mp = driverLeft ? new R(sw, 0, w - sw, h) : new R(0, 0, w - sw, h);
             mapInset = false;
         }
+        info = inf;
+        R ca = threeZone() ? info : scene;   // where the cards go
 
         // cards, relative to the scene, on the driver side; chip / stale rects are the space a pill may use,
         // the renderer anchors the pill on the driver side (cardsLeft)
         cardsLeft = driverLeft;
         int sw = px(150), shh = px(100);
-        int sx = driverLeft ? scene.x + pad : scene.r() - pad - sw;
-        speed = new R(sx, scene.y + pad, sw, shh);
+        int sx = driverLeft ? ca.x + pad : ca.r() - pad - sw;
+        speed = new R(sx, ca.y + pad, sw, shh);
         int lw = px(84);
         int lx = driverLeft ? speed.r() + px(8) : speed.x - px(8) - lw;
-        setLimit = new R(lx, speed.y, lw, shh);
-        int cw = Math.min(px(220), scene.w - 2 * pad), stw = Math.min(px(240), scene.w - 2 * pad);
-        chip = new R(driverLeft ? sx : scene.r() - pad - cw, speed.b() + px(8), cw, px(40));
-        staleLabel = new R(driverLeft ? sx : scene.r() - pad - stw, chip.b() + px(8), stw, px(28));
+        setLimit = threeZone() ? new R(driverLeft ? sx : ca.r() - pad - lw, speed.b() + px(8), lw, shh)   // stacked in the column
+                : new R(lx, speed.y, lw, shh);
+        int cw = Math.min(px(220), ca.w - 2 * pad), stw = Math.min(px(240), ca.w - 2 * pad);
+        chip = new R(driverLeft ? sx : ca.r() - pad - cw, (threeZone() ? setLimit.b() : speed.b()) + px(8), cw, px(40));
+        staleLabel = new R(driverLeft ? sx : ca.r() - pad - stw, chip.b() + px(8), stw, px(28));
         extra = new R(staleLabel.x, staleLabel.b() + px(8), stw, px(28));   // add-on card slot
         bar = mode == Mode.SPLIT && portrait ? new R(0, h - px(56), w, px(56)) : new R(0, h, w, 0);
         int aw = Math.min(scene.w - 2 * pad, px(560)), ah = px(72);

@@ -12,7 +12,7 @@ The **MapLibre APK** (`tools/gradle-build.sh`) bundles, through Gradle (versions
   attribution "OpenFreeMap · © OpenMapTiles · Data © OpenStreetMap contributors" is shown on the map
   (OpenStreetMap data: ODbL; OpenMapTiles schema: BSD 3-Clause code, CC-BY 4.0 design). Offline use follows
   OpenFreeMap's terms (docs/MAP.md).
-TODO before a release: an "About / licences" screen listing all of the above with full licence texts.
+In the app: Settings -> About and licences -> Full licence texts (NOTICE, MapLibre BSD-2 from docs/licenses/, Apache 2.0).
 
 Interfaces, not code:
 - The `/api/hud` and `/api/hud/scene` JSON contracts are served by StarPilot's Galaxy web server (StarPilot and

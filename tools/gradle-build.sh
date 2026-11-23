@@ -33,6 +33,9 @@ PY2
 python3 -I "$here/tools/gen_synthetic_replay.py" "$TUI_GEN/assets/demo.jsonl" >/dev/null
 python3 -I "$here/tools/gen_synthetic_replay.py" --map "$TUI_GEN/assets/demo-map.json" >/dev/null
 printf 'org.tuiapp.map.maplibre.MapLibreEngine\n' > "$TUI_GEN/assets/map-engines.txt"
+{ cat "$here/NOTICE"; echo; echo "== MapLibre Native =================================================="; cat "$here/docs/licenses/MapLibre-Native-BSD-2.txt"
+  echo; echo "== OkHttp, Okio, Timber, Kotlin, kotlinx-coroutines, AndroidX: Apache License 2.0 (text below) =="
+  echo; echo "== T-UI: Apache License 2.0 ========================================"; cat "$here/LICENSE"; } > "$TUI_GEN/assets/licenses.txt"
 for a in $ADDONS; do grep -v '^#' "$here/addons/$a/addon.txt" >> "$TUI_GEN/assets/addons.txt"; done
 javac -nowarn -Xlint:-options --release 8 -encoding UTF-8 -d "$W/host" $(find "$here/core/src" "$here/tools/host/src" -name '*.java')
 java -Djava.awt.headless=true -cp "$W/host" org.tuiapp.host.IconGen "$TUI_GEN/res"

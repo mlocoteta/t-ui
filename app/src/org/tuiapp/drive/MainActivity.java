@@ -112,7 +112,31 @@ public final class MainActivity extends Activity implements DriveView.Host {
     };
     @Override public void onLowMemory() { super.onLowMemory(); if (engine != null) engine.onLowMemory(); }
     @Override public void onBackPressed() {
-        if (view.offlineOpen()) view.closeOffline(); else if (view.panelOpen()) view.closePanel(); else super.onBackPressed();
+        if (view.aboutOpen()) view.closeAbout(); else if (view.offlineOpen()) view.closeOffline(); else if (view.panelOpen()) view.closePanel(); else super.onBackPressed();
+    }
+
+    // ------------------------------------------------------------------ first-run safety + about
+    @Override public void onInfoHit(String id) {
+        if (org.tuiapp.core.InfoPanel.ACCEPT.equals(id)) { settings.safetyAccepted = true; save(); applySettings(); }
+        else if (org.tuiapp.core.InfoPanel.CLOSE.equals(id)) view.closeAbout();
+        else if (org.tuiapp.core.InfoPanel.LICENCES.equals(id)) showLicences();
+    }
+    @Override public String mapBuildLine() {
+        return engine != null ? "This build includes MapLibre Native (BSD 2-Clause), OkHttp / Okio / Timber / Kotlin / AndroidX (Apache 2.0)."
+                : "This build includes no third-party code (built-in map renderer).";
+    }
+    private void showLicences() {
+        String text;
+        try {
+            InputStream in = getAssets().open("licenses.txt");
+            ByteArrayOutputStream bo = new ByteArrayOutputStream(); byte[] buf = new byte[8192]; int n;
+            while ((n = in.read(buf)) > 0) bo.write(buf, 0, n);
+            in.close(); text = bo.toString("UTF-8");
+        } catch (Exception e) { text = "Licence texts missing from this build: see the source repository."; }
+        android.widget.TextView tv = new android.widget.TextView(this);
+        tv.setText(text); tv.setTextSize(12); int p = (int) (16 * getResources().getDisplayMetrics().density); tv.setPadding(p, p, p, p);
+        android.widget.ScrollView sv = new android.widget.ScrollView(this); sv.addView(tv);
+        new AlertDialog.Builder(this).setTitle("Open-source licences").setView(sv).setPositiveButton("Close", null).show();
     }
 
     // ------------------------------------------------------------------ optional device GPS (opt-in)
@@ -205,6 +229,8 @@ public final class MainActivity extends Activity implements DriveView.Host {
         long now = DataSource.SYSTEM.now();
         if (SettingsPanel.DONE.equals(h.section)) { view.closePanel(); immersive(); return; }
         if (SettingsPanel.CORE.equals(h.section)) {
+            if (Settings.K_ABOUT.equals(h.key)) { view.openAbout(); return; }
+            if (SettingsPanel.locked(v)) return;   // read-only while the car moves
             if (Settings.K_OFFLINE.equals(h.key)) { view.openOffline(); return; }
             if (Settings.K_EGO_COLOR.equals(h.key) && h.option == SettingsPanel.EGO_CUSTOM) { editEgoColor(); return; }
             if (h.text && Settings.K_MAP_URL.equals(h.key)) { editStyleUrl(); return; }
@@ -214,7 +240,7 @@ public final class MainActivity extends Activity implements DriveView.Host {
             return;
         }
         final Addon a = addons.byId(h.section);
-        if (a == null || v == null) return;
+        if (a == null || v == null || SettingsPanel.locked(v)) return;
         final WriteRequest w = a.select(h.key, h.option, v, settings, now);
         save();
         if (w != null) send(a, w);

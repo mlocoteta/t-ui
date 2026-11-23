@@ -214,7 +214,7 @@ public final class V03 {
         Settings c = new Settings();
         ok(SettingsPanel.apply(c, Settings.K_MAP_ONLINE, 0) && !c.mapOnline, "online tiles toggle");
         ok(SettingsPanel.apply(c, Settings.K_MAP_SOURCE, 2) && MapSources.CUSTOM.equals(c.mapSource), "source chip");
-        ok(SettingsPanel.coreRows(c).size() == 11, "custom source adds the URL row");
+        ok(SettingsPanel.coreRows(c).size() == 12, "custom source adds the URL row");
     }
 
     static void renderModes() {

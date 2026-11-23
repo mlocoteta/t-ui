@@ -34,6 +34,8 @@ final class DriveView extends View {
         void onPanelHit(SettingsPanel.Hit h, ViewState v);
         void onOfflineHit(OfflinePanel.Hit h, ViewState v);
         boolean networkUp();
+        void onInfoHit(String id);
+        String mapBuildLine();
     }
 
     static final long FRAME_MS = 33;
@@ -41,6 +43,8 @@ final class DriveView extends View {
     private final DriveRenderer renderer = new DriveRenderer();
     private final SettingsPanel panel = new SettingsPanel();
     final OfflinePanel offline = new OfflinePanel();
+    private final org.tuiapp.core.InfoPanel info = new org.tuiapp.core.InfoPanel();
+    private boolean aboutOpen;
     private final OfflineModel noEngineModel = new OfflineModel();
     private final Smoother smoother = new Smoother();
     private final AndroidGfx gfx = new AndroidGfx();
@@ -61,7 +65,7 @@ final class DriveView extends View {
         super(c);
         this.model = model; this.host = host;
         setLayerType(LAYER_TYPE_HARDWARE, null);   // CLEAR leaves real holes for the map view behind
-        setOnLongClickListener(new OnLongClickListener() { public boolean onLongClick(View v) { if (!panelOpen && !offlineOpen) { panelOpen = true; invalidate(); } return true; } });
+        setOnLongClickListener(new OnLongClickListener() { public boolean onLongClick(View v) { if (!panelOpen && !offlineOpen && !infoShown()) { panelOpen = true; invalidate(); } return true; } });
     }
 
     void configure(Settings s, Addons a, MapData m) {
@@ -80,6 +84,11 @@ final class DriveView extends View {
         if (engine != null) engine.setBrowsing(true, lat, lon, camZoom);
         invalidate();
     }
+    void openAbout() { panelOpen = false; aboutOpen = true; invalidate(); }
+    void closeAbout() { aboutOpen = false; invalidate(); }
+    boolean aboutOpen() { return aboutOpen; }
+    private boolean infoShown() { return aboutOpen || !settings.safetyAccepted; }
+
     void closeOffline() { offlineOpen = false; if (engine != null) engine.setBrowsing(false, 0, 0, 0); invalidate(); }
     boolean offlineOpen() { return offlineOpen; }
     OfflineModel offlineModel() { return engine != null ? engine.offline() : noEngineModel; }
@@ -87,6 +96,10 @@ final class DriveView extends View {
     @Override protected void onSizeChanged(int w, int h, int ow, int oh) { layout = null; }
 
     @Override public boolean onTouchEvent(MotionEvent e) {
+        if (infoShown()) {
+            if (e.getActionMasked() == MotionEvent.ACTION_UP) { String id = info.hit(e.getX(), e.getY()); if (id != null) host.onInfoHit(id); invalidate(); }
+            return true;
+        }
         if (offlineOpen) return offlineTouch(e);
         if (panelOpen) {
             switch (e.getActionMasked()) {
@@ -144,6 +157,13 @@ final class DriveView extends View {
         if (engine != null) {
             boolean c = MapChooser.engineConnected(settings.mapOnline, net);
             if (c != connected) { connected = c; engine.setConnected(c); }
+        }
+        if (infoShown()) {
+            placeEngine(false, 0, 0, 0, 0);
+            if (!settings.safetyAccepted) info.draw(gfx.on(canvas), layout, t, org.tuiapp.core.InfoPanel.Kind.SAFETY, org.tuiapp.core.InfoPanel.SAFETY);
+            else info.draw(gfx.on(canvas), layout, t, org.tuiapp.core.InfoPanel.Kind.ABOUT, org.tuiapp.core.InfoPanel.about(host.mapBuildLine()));
+            postInvalidateDelayed(FRAME_MS * 3);
+            return;
         }
         if (offlineOpen) {
             float[] r = OfflinePanel.viewportRect(layout);

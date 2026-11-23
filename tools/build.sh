@@ -45,6 +45,7 @@ TAG=""; [ "${PREVIEW:-0}" = 1 ] && TAG="-preview"; for a in $ADDONS; do [ -d "$h
 OUT="$B/tui$TAG-debug.apk"
 W="$B/apk$TAG"; rm -rf "$W"; mkdir -p "$W/classes" "$W/dex" "$W/assets" "$W/res" "$W/host"
 sed -e "s/@APP_ID@/$APP_ID/g" -e "s/@APP_NAME@/$APP_NAME/g" "$here/app/AndroidManifest.xml" > "$W/AndroidManifest.xml"
+{ cat "$here/NOTICE"; echo; echo "=================================================================="; cat "$here/LICENSE"; } > "$W/assets/licenses.txt"
 [ -n "$DEFAULTS" ] && printf '%s\n' "$DEFAULTS" > "$W/assets/defaults.properties"
 python3 -I "$here/tools/gen_synthetic_replay.py" "$W/assets/demo.jsonl" >/dev/null
 python3 -I "$here/tools/gen_synthetic_replay.py" --map "$W/assets/demo-map.json" >/dev/null

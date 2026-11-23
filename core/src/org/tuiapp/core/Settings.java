@@ -14,7 +14,7 @@ public final class Settings {
 
     public static final String K_ADDR = "commaAddress", K_THEME = "theme", K_UNITS = "units", K_LAYOUT = "layoutMode",
             K_SCREEN_ON = "keepScreenOn", K_RHD = "rightHandDrive", K_MAP_ONLINE = "mapOnline", K_MAP_SOURCE = "mapSource",
-            K_EGO_COLOR = "egoColor", K_DEVICE_GPS = "useDeviceGps", K_MAP_URL = "mapCustomStyleUrl", K_OFFLINE_CAP = "offlineCapMb", K_OFFLINE = "offlineMaps";
+            K_EGO_COLOR = "egoColor", K_DEVICE_GPS = "useDeviceGps", K_SAFETY = "safetyAccepted", K_ABOUT = "about", K_MAP_URL = "mapCustomStyleUrl", K_OFFLINE_CAP = "offlineCapMb", K_OFFLINE = "offlineMaps";
 
     public String commaAddress = "";
     public ThemePref theme = ThemePref.AUTO;
@@ -29,6 +29,8 @@ public final class Settings {
     public int egoColor;
     /** use this device's own GPS for the map when the comma gives no position (opt-in; asks for location permission) */
     public boolean useDeviceGps;
+    /** the first-run safety notice was accepted (shown until then) */
+    public boolean safetyAccepted;
     /** set by the app: this build can use the device's GPS (MapLibre build); not persisted */
     public boolean deviceGpsSupported;
     /** preset swatches for "My car colour" (neutral paint names, no maker colours); 0 = theme default */
@@ -50,6 +52,7 @@ public final class Settings {
         String u = m.get(K_MAP_URL); s.mapCustomUrl = u == null ? "" : u.trim();
         s.egoColor = parseColor(m.get(K_EGO_COLOR));
         s.useDeviceGps = "true".equals(m.get(K_DEVICE_GPS));
+        s.safetyAccepted = "true".equals(m.get(K_SAFETY));
         try { s.offlineCapMb = Math.max(10, Math.min(20000, Long.parseLong(String.valueOf(m.get(K_OFFLINE_CAP))))); } catch (NumberFormatException e) { s.offlineCapMb = 500; }
         for (Map.Entry<String, String> e : m.entrySet()) if (e.getKey().startsWith("addon.")) s.extra.put(e.getKey(), e.getValue());
         return s;
@@ -63,6 +66,7 @@ public final class Settings {
         m.put(K_OFFLINE_CAP, String.valueOf(offlineCapMb));
         m.put(K_EGO_COLOR, egoColor == 0 ? "" : hex(egoColor));
         m.put(K_DEVICE_GPS, String.valueOf(useDeviceGps));
+        m.put(K_SAFETY, String.valueOf(safetyAccepted));
         m.putAll(extra);
         return m;
     }
